@@ -19,38 +19,23 @@ import numpy as np
 
 #%% Importando os dados
 
-## Fonte: Fávero & Belfiore (2017, Capítulo 9)
+## Fonte: Kaggle: https://www.kaggle.com/datasets/abdallahwagih/mall-customers-segmentation
 
-dados_vest = pd.read_excel('Vestibular.xlsx')
-
-dados_celular = pd.read_excel('celulares samsung.xlsx')
+dados_mall = pd.read_csv('Mall_Customers.csv')
 
 #%% Visualizando os dados e cada uma das variáveis
 
-print(dados_vest, "\n")
+print(dados_mall, "\n")
 
-print(dados_vest.info())
+print(dados_mall.info())
 
 #%% ZScore
 
 # Selecionado apenas variáveis métricas e realizando o ZScore
 
-vest = dados_vest.drop(columns=['estudante'])
-celular = dados_celular.drop(columns=['Name', 'Description'])
-
+mall = dados_mall.drop(columns=['CustomerID','Genre'])
                        
-# Muitas vezes, é importante realizar o procedimento Z-Score nas variáveis
-# Quando as variáveis estiverem em unidades de medidas distintas
-# Poderia ser feito da seguinte forma, embora aqui não utilizaremos
-                
-for coluna in celular.columns:
-    celular[coluna] = stats.zscore(celular[coluna])
-
-# Neste caso, vamos utilizar as variáveis originais
-# Todas são notas de 0 a 10
-
-print(vest)
-print(celular)
+print(mall)
 
 #%% Cluster Hierárquico Aglomerativo
 
@@ -59,22 +44,13 @@ print(celular)
 ## Inicialmente, vamos utilizar: 
 ## Distância euclidiana e método de encadeamento single linkgage
 
-#plt.figure(figsize=(16,8))
-
-#dendrogram = sch.dendrogram(sch.linkage(vest, method = 'single', metric = 'euclidean'), labels = list(dados_vest.estudante))
-#plt.title('Dendrograma', fontsize=16)
-#plt.xlabel('Pessoas', fontsize=16)
-#plt.ylabel('Distância Euclidiana', fontsize=16)
-#plt.axhline(y = 4.5, color = 'red', linestyle = '--')
-#plt.show()
-
 plt.figure(figsize=(16,8))
 
-dendrogram = sch.dendrogram(sch.linkage(celular, method = 'single', metric = 'euclidean'), labels = list(dados_celular.Description.str[:15]))
+dendrogram = sch.dendrogram(sch.linkage(mall, method = 'single', metric = 'euclidean'), labels = list(dados_mall.CustomerID))
 plt.title('Dendrograma', fontsize=16)
-plt.xlabel('Celulares', fontsize=16)
+plt.xlabel('CustomerID', fontsize=16)
 plt.ylabel('Distância Euclidiana', fontsize=16)
-plt.axhline(y = 4.5, color = 'red', linestyle = '--')
+plt.axhline(y = 14.5, color = 'red', linestyle = '--')
 plt.show()
 
 # Opções para o método de encadeamento ("method"):
@@ -109,42 +85,42 @@ plt.show()
 ## Como já observamos 3 clusters pelo dendrograma, vamos selecionar "3" clusters
 ## A medida de distância e o método de encadeamento são mantidos
 
-cluster_sing = AgglomerativeClustering(n_clusters = 3, metric = 'euclidean', linkage = 'complete')
-indica_cluster_sing = cluster_sing.fit_predict(vest)
+cluster_sing = AgglomerativeClustering(n_clusters = 5, metric = 'euclidean', linkage = 'complete')
+indica_cluster_sing = cluster_sing.fit_predict(mall)
 
 # Retorna uma lista de valores com o cluster de cada observação
 
 print(indica_cluster_sing, "\n")
 
-dados_vest['cluster_single'] = indica_cluster_sing
+dados_mall['cluster_single'] = indica_cluster_sing
 
-print(dados_vest)
+print(dados_mall)
 
 #%% Comparando clusters resultantes por diferentes métodos de encadeamento
 
 # Complete linkage
 
-cluster_comp = AgglomerativeClustering(n_clusters = 3, metric = 'euclidean', linkage = 'complete')
-indica_cluster_comp = cluster_comp.fit_predict(vest)
+cluster_comp = AgglomerativeClustering(n_clusters = 5, metric = 'euclidean', linkage = 'complete')
+indica_cluster_comp = cluster_comp.fit_predict(mall)
 
 print(indica_cluster_comp, "\n")
 
-dados_vest['cluster_complete'] = indica_cluster_comp
+dados_mall['cluster_complete'] = indica_cluster_comp
 
-print(dados_vest)
+print(dados_mall)
 
 #%% Comparando clusters resultantes por diferentes métodos de encadeamento
 
 # Average linkage
 
 cluster_avg = AgglomerativeClustering(n_clusters = 3, metric = 'euclidean', linkage = 'average')
-indica_cluster_avg = cluster_avg.fit_predict(vest)
+indica_cluster_avg = cluster_avg.fit_predict(mall)
 
 print(indica_cluster_avg, "\n")
 
-dados_vest['cluster_average'] = indica_cluster_avg
+dados_mall['cluster_average'] = indica_cluster_avg
 
-print(dados_vest)
+print(dados_mall)
 
 ## Inclusive, poderiam ser alteradas as medidas de distância também
 
@@ -152,7 +128,7 @@ print(dados_vest)
 
 # Considerando que identificamos 3 possíveis clusters na análise hierárquica
 
-kmeans = KMeans(n_clusters = 3, init = 'random').fit(vest)
+kmeans = KMeans(n_clusters = 5, init = 'random').fit(mall)
 
 #%% Para identificarmos os clusters gerados
 
@@ -160,31 +136,31 @@ kmeans_clusters = kmeans.labels_
 
 print(kmeans_clusters)
 
-dados_vest['cluster_kmeans'] = kmeans_clusters
+dados_mall['cluster_kmeans'] = kmeans_clusters
 
-print(dados_vest)
+print(dados_mall)
 
 #%% Identificando as coordenadas centróides dos clusters finais
 
 cent_finais = pd.DataFrame(kmeans.cluster_centers_)
-cent_finais.columns = vest.columns
+cent_finais.columns = mall.columns
 cent_finais.index.name = 'cluster'
 cent_finais
 
 #%% Analisando o banco de dados
 
-vest
+mall
 
 #%% Plotando as observações e seus centróides dos clusters
 
-plt.figure(figsize=(10,10))
+plt.figure(figsize=(16,8))
 
-pred_y = kmeans.fit_predict(vest)
-sns.scatterplot(x='matemática', y='física', data=dados_vest, hue='cluster_kmeans', palette='viridis', s=60)
-plt.scatter(cent_finais['matemática'], cent_finais['física'], s = 40, c = 'red', label = 'Centróides', marker="X")
+pred_y = kmeans.fit_predict(mall)
+sns.scatterplot(x='Annual Income (k$)', y='Spending Score (1-100)', data=dados_mall, hue='cluster_kmeans', palette='viridis', s=60)
+plt.scatter(cent_finais['Annual Income (k$)'], cent_finais['Spending Score (1-100)'], s = 40, c = 'red', label = 'Centróides', marker="X")
 plt.title('Clusters e centróides', fontsize=16)
-plt.xlabel('Matemática', fontsize=16)
-plt.ylabel('Física', fontsize=16)
+plt.xlabel('Annual Income (k$)', fontsize=16)
+plt.ylabel('Spending Score', fontsize=16)
 plt.legend()
 plt.show()
 
@@ -195,9 +171,9 @@ plt.show()
 ## Quanto mais próximos entre si e do centróide, menor a inércia
 
 inercias = []
-K = range(1,vest.shape[0])
+K = range(1,mall.shape[0])
 for k in K:
-    kmeanModel = KMeans(n_clusters=k).fit(vest)
+    kmeanModel = KMeans(n_clusters=k).fit(mall)
     inercias.append(kmeanModel.inertia_)
     
 plt.figure(figsize=(16,8))
@@ -273,7 +249,7 @@ def teste_f_kmeans(kmeans, dataframe):
 
 # Os valores da estatística F são bastante sensíveis ao tamanho da amostra
 
-output = teste_f_kmeans(kmeans,vest)
+output = teste_f_kmeans(kmeans,mall)
 
 #%% Gráfico 3D dos clusters
 
@@ -282,177 +258,11 @@ import plotly.io as pio
 
 pio.renderers.default='browser'
 
-fig = px.scatter_3d(dados_vest, 
-                    x='matemática', 
-                    y='química', 
-                    z='física',
+fig = px.scatter_3d(dados_mall, 
+                    x='Age', 
+                    y='Annual Income (k$)', 
+                    z='Spending Score (1-100)',
                     color='cluster_kmeans')
 fig.show()
 
-#%% Análise de Cluster: Exemplo 2
-
-# Importando os dados
-# Fonte: Fávero & Belfiore (2017, Capítulo 9)
-
-dados_varejista = pd.read_excel('Regional Varejista (Cluster).xlsx')
-
-#%% Visualizando os dados
-
-print(dados_varejista, "\n")
-
-print(dados_varejista.info(), "\n")
-
-#%% Visualizando as estatítiscas univariadas
-
-print(dados_varejista[['atendimento','sortimento', 'organização']].describe())
-
-#%% Ajustando o banco de dados
-
-# Retirando todos os dados que não são numéricos do dataset
-
-varejista = dados_varejista.drop(columns=['loja','regional'])
-
-print(varejista)
-
-#%% Cluster Hierárquico Aglomerativo
-
-# Gerando o dendrograma
-
-plt.figure(figsize=(16,8))
-dendrogram = sch.dendrogram(sch.linkage(varejista, method = 'complete', metric = 'euclidean'))
-plt.axhline(y = 60, color = 'red', linestyle = '--')
-plt.title('Dendrograma')
-plt.xticks([]) # Procedimento para retirar os pontos do eixo x quando existirem muitas observações
-plt.ylabel('Distância Euclidiana')
-plt.show()
-
-# Opções para o método de encadeamento ("method"):
-    ## single
-    ## complete
-    ## average
-
-# Opções para as distâncias ("metric"):
-    ## euclidean
-    ## sqeuclidean
-    ## cityblock
-    ## chebyshev
-    ## canberra
-    ## correlation
-
-#%% Clusters gerados pelo método de encadeamento 'single linkage'
-
-cluster_sing = AgglomerativeClustering(n_clusters = 3, metric = 'euclidean', linkage = 'single')
-indica_cluster_sing = cluster_sing.fit_predict(varejista)
-
-print(indica_cluster_sing)
-
-dados_varejista['cluster_single'] = indica_cluster_sing
-dados_varejista['cluster_single'] = dados_varejista['cluster_single'].astype('category')
-
-print(dados_varejista)
-
-#%% Clusters gerados pelo método de encadeamento 'average linkage'
-
-cluster_sing = AgglomerativeClustering(n_clusters = 3, metric = 'euclidean', linkage = 'average')
-indica_cluster_sing = cluster_sing.fit_predict(varejista)
-
-print(indica_cluster_sing)
-
-dados_varejista['cluster_average'] = indica_cluster_sing
-dados_varejista['cluster_average'] = dados_varejista['cluster_average'].astype('category')
-
-print(dados_varejista)
-
-#%% Clusters gerados pelo método de encadeamento 'complete linkage'
-# a função AgglomerativeClustering cria a variavel no Dataframe o dendrograma só faz o grafico
-
-cluster_sing = AgglomerativeClustering(n_clusters = 3, metric = 'euclidean', linkage = 'complete')
-indica_cluster_sing = cluster_sing.fit_predict(varejista)
-
-print(indica_cluster_sing)
-
-dados_varejista['cluster_complete'] = indica_cluster_sing
-dados_varejista['cluster_complete'] = dados_varejista['cluster_complete'].astype('category')
-
-print(dados_varejista)
-
-#%% Plotando as observações e seus clusters (single)
-
-plt.figure(figsize=(10,10))
-
-fig = sns.scatterplot(x='atendimento', y='sortimento', s=60, data=dados_varejista, hue='cluster_single')
-plt.title('Clusters', fontsize=16)
-plt.xlabel('Atendimento', fontsize=16)
-plt.ylabel('Sortimento', fontsize=16)
-plt.show()
-
-#%% Método K-Means
-
-# Considerando que identificamos 3 possíveis clusters na análise hierárquica
-
-kmeans_varejista = KMeans(n_clusters = 3, init = 'random').fit(varejista)
-
-#%% Para identificarmos os clusters gerados
-
-kmeans_clusters = kmeans_varejista.labels_
-
-print(kmeans_clusters)
-
-dados_varejista['cluster_kmeans'] = kmeans_clusters
-
-#%% Coordenadas dos centróides dos clusters finais
-
-cent_finais = pd.DataFrame(kmeans_varejista.cluster_centers_)
-cent_finais.columns = varejista.columns
-cent_finais.index.name = 'cluster'
-cent_finais
-
-#%% Plotando as observações e seus centróides dos clusters
-
-plt.figure(figsize=(10,10))
-
-sns.scatterplot(x='atendimento', y='sortimento', data=dados_varejista, hue='cluster_kmeans', palette='viridis', s=60)
-plt.scatter(cent_finais['atendimento'], cent_finais['sortimento'], s = 40, c = 'red', label = 'Centróides', marker="X")
-plt.title('Clusters e centróides', fontsize=16)
-plt.xlabel('Atendimento', fontsize=16)
-plt.ylabel('Sortimento', fontsize=16)
-plt.legend()
-plt.show()
-
-#%% Método Elbow para identificação do nº de clusters
-
-## Obs.: Quanto mais próximos entre si e do centróide, menor a inércia
-
-inercias = []
-K = range(1,varejista.shape[0])
-for k in K:
-    kmeanModel = KMeans(n_clusters=k).fit(varejista)
-    inercias.append(kmeanModel.inertia_)
-    
-plt.figure(figsize=(16,8))
-plt.plot(K, inercias, 'bx-')
-plt.axhline(y = 4000, color = 'red', linestyle = '--')
-plt.xlabel('Nº Clusters', fontsize=16)
-plt.ylabel('Inércias', fontsize=16)
-plt.title('Método do Elbow', fontsize=16)
-plt.show()
-
-#%% Estatística F das variáveis
-
-teste_f_kmeans(kmeans_varejista,varejista)
-
-#%% Gráfico 3D dos clusters
-
-import plotly.express as px 
-import plotly.io as pio
-
-pio.renderers.default='browser'
-
-fig = px.scatter_3d(dados_varejista, 
-                    x='atendimento', 
-                    y='sortimento', 
-                    z='organização',
-                    color='cluster_kmeans')
-fig.show()
-
-#%% FIM
+#%% fim
