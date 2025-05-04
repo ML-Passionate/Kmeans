@@ -21,3 +21,8 @@ Clusters e seus respectivos centróides
 
 ![image](https://github.com/user-attachments/assets/3762b21c-7f61-4e79-947a-dd176e827b53)
 
+Utilizando o plotly para ver os clusters em 3D
+
+![image](https://github.com/user-attachments/assets/572869c7-5660-4e36-982d-9491886e61a8)
+
+
