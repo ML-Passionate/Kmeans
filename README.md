@@ -16,3 +16,8 @@ b) Método K-means
 Usando o método do elbow para determinar o número de clusters
 estatística F mostra como cada atributo contribui para a formação do clusters
 Se o nível de significância for menor que 0,05 (5%), sim o atributo é relevante para formação dos clusters
+
+Clusters e seus respectivos centróides
+
+![image](https://github.com/user-attachments/assets/3762b21c-7f61-4e79-947a-dd176e827b53)
+
