@@ -2,6 +2,7 @@
 
 ![image](https://github.com/user-attachments/assets/47a8a2a8-b85c-4685-8ba6-86dece59aaff)
 
+Kaggle: https://www.kaggle.com/datasets/abdallahwagih/mall-customers-segmentation
 
 a) Método hierárquico
 
