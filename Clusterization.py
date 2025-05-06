@@ -258,11 +258,17 @@ import plotly.io as pio
 
 pio.renderers.default='browser'
 
+# Paleta de cores pastel (pode ser ajustada conforme o número de clusters)
+cores_pastel = ['#AEC6CF', '#FFB347', '#B39EB5', '#77DD77', '#FF6961']
+dados_mall['cluster_kmeans'] = dados_mall['cluster_kmeans'].astype(str)
+
+
+
 fig = px.scatter_3d(dados_mall, 
                     x='Age', 
                     y='Annual Income (k$)', 
                     z='Spending Score (1-100)',
-                    color='cluster_kmeans')
+                    color='cluster_kmeans', color_discrete_sequence = cores_pastel)
 fig.show()
 
 #%% fim
